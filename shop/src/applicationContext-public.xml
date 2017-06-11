@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+	
+	<!-- 使用注解首先开启注解扫描 -->
+	<context:component-scan base-package="cn.it.shop.." />
+	
+	<!-- 所有的properties文件都应该交给spring来管理，而且在启动的时候加载 
+		Spring支持两种方式，property-placeholder加载的properties中的内容仅仅用在xml中
+		<context:property-placeholder location="classpath:conn.properties"/>同下
+	-->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<array>
+				<!-- 可以加载多个 -->
+				<value>classpath:conn.properties</value>
+			</array>
+		</property>
+	</bean>
+	<!-- Spring加载properties的第二种方式，仅仅支持注解的注入 -->
+	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<array>
+				<!-- 可以加载多个 -->
+				<value>classpath:public.properties</value>
+			</array>
+		</property>
+	</bean>
+	
+	
+	 <!-- hibernate配置文件中的那些连接数据库信息可以注释掉了
+	 	值在conn.properties中
+	  -->
+	 <bean id="dataSource" class="${dataSource}">
+	 	<property name="driverClass" value="${driverClass}"/>
+	 	<property name="jdbcUrl" value="${jdbcUrl}"/>
+	 	<property name="user" value="${user}"/>
+	 	<property name="password" value="${password}"/>
+	 </bean>
+	 
+	 <!-- 配置LocalSessionFactoryBean -->
+	 <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+	 	<property name="dataSource" ref="dataSource"/>
+	 	<property name="configLocation" value="classpath:hibernate.cfg.xml"/>
+	 </bean>
+	 
+	 <!-- 配置事务管理器，管理SessionFactory -->
+	 <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+	 	<property name="sessionFactory" ref="sessionFactory"/>
+	 </bean>
+	 
+	 <!-- 配置advice(通知)   对save,update,delete.开头的方法，要切事务，对于其他的方法，事务可有可无-->
+	 <tx:advice id="advice" transaction-manager="transactionManager">
+	 	<tx:attributes>
+	 		<tx:method name="save" propagation="REQUIRED"/>
+	 		<tx:method name="update" propagation="REQUIRED"/>
+	 		<tx:method name="delete" propagation="REQUIRED"/>
+	 		<tx:method name="*" propagation="SUPPORTS"/>
+	 	</tx:attributes>
+	 </tx:advice>
+
+	 <!-- 配置AOP切面表达式 -->
+	 <aop:config> 
+		<!-- 配置哪些包的类要切入事务。  cn.it.shop.service.impl包下的所有类的所有方法都切事务，具体切哪种，看方法名 -->
+	 	<aop:pointcut expression="execution(* cn.it.shop.service.impl.*.*(..))" id="pointcut"/>
+	 	<!-- 通知+切面表达式，才是完整的切入路径。 -->
+	 	<aop:advisor advice-ref="advice" pointcut-ref="pointcut"/>
+	 </aop:config>
+	 
+</beans>

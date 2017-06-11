@@ -1,0 +1,26 @@
+<ehcache>
+  	<!--这个文件的名字必须为ehcache.xml-->
+  	
+  	<!-- 如果缓存内存溢出则存储到硬盘空间 -->
+    <diskStore path="java.io.tmpdir"/>
+    
+    <!-- 
+    	<defaultCache
+            maxElementsInMemory="10000"  内存支持的最大对象的数量
+            eternal="false"  对象是否永久生效，建议为false，这样下面的两个参数才会有效
+            timeToIdleSeconds="120" 对象的间隔周期，默认单位为秒
+            timeToLiveSeconds="120" 对象的声明周期，默认单位为秒
+            overflowToDisk="true"  是否支持溢出到硬盘，建议为true
+            memoryStoreEvictionPolicy="LRU"  对象替换策略（LRU最近最少使用，FIFO先进先出，LFU最不经常使用）
+            />
+     -->
+
+    <defaultCache
+            maxElementsInMemory="1000"
+            eternal="false"
+            timeToIdleSeconds="60"
+            timeToLiveSeconds="120"
+            overflowToDisk="false"
+            memoryStoreEvictionPolicy="LFU"
+            />
+</ehcache>
